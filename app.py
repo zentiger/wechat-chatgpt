@@ -10,7 +10,7 @@ robot = werobot.WeRoBot(token=os.getenv("WECHAT_TOKEN"))
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 max_tokens = os.getenv("MAX_TOKENS")
-max_tokens = 100 if max_tokens is None else int(max_tokens)
+max_tokens = 2048 if max_tokens is None else int(max_tokens)
 
 def get_gpt3_reply(text):
     print("Calling text-davinci-003 API...")
@@ -22,16 +22,18 @@ def get_gpt3_reply(text):
     )
     return response.choices[0].text.strip()
 
-def get_gpt3dot5_reply(text):
+messages = [ {"role": "system", "content": "Your are an AI assitant."}]
+def get_gpt3dot5_reply(prompt):
     print("Calling gpt-3.5-turbo API...")
+    global messages
+    messages.append({"role":"user", "content": prompt})
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[
-            {"role": "user", "content": text}
-        ],
         max_tokens=max_tokens,
         temperature=0.8
     )
+
+    messages.append(response.choices[0].message)
     return response.choices[0].message.content.strip()
 
 @robot.text
@@ -40,9 +42,7 @@ def hello_world(message):
         reply = get_gpt3_reply(message.content)
     else:
         reply = get_gpt3dot5_reply(message.content)
-
-    print(reply)
-
+    # print(reply)
     return reply
 
 # robot.config['HOST'] = '0.0.0.0'
