@@ -8,6 +8,7 @@ from .event import MessageReceiveEvent, UrlVerificationEvent, EventManager
 from flask import Flask, jsonify, Blueprint
 from dotenv import load_dotenv, find_dotenv
 import openai
+import json
 
 # load env parameters form file named .env
 load_dotenv(find_dotenv())
@@ -89,8 +90,8 @@ def message_receive_event_handler(req_data: MessageReceiveEvent):
     prompt = message.content
     # echo text message
 
-    chatgpt_reply = get_gpt3dot5_reply(prompt)
-    message_api_client.send_text_with_open_id(open_id, chatgpt_reply)
+    chatgpt_reply = get_gpt3dot5_reply(json.loads(prompt)["text"])
+    message_api_client.send_text_with_open_id(open_id, json.dumps({"text": chatgpt_reply}))
     return jsonify()
 
 
